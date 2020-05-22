@@ -1,0 +1,31 @@
+version: "3.7"
+
+services:
+  redis:
+    image: redis
+    command: redis-server --appendonly yes
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 5000:5000
+    depends_on:
+      - redis
+    volumes:
+      - .:/app
+
+  workers:
+    build:
+      context: .
+      dockerfile: ./workers/Dockerfile
+    volumes:
+      - .:/app
+    links:
+      - redis
+      - web
+    depends_on:
+      - redis
+    environment:
+      RQ_REDIS_URL: redis://redis
